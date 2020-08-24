@@ -1,27 +1,13 @@
 import boto3
-import csv
+import os
 
-# Criar conexão com o S3
-session = boto3.Session(
-  aws_access_key_id=''
-  aws_secret_access_key=''
-  region_name=''
-)
+def DownloadS3(bucketName, remoteDirectoryName):
+  s3_resource = boto3.resource('s3')
+  bucket = s3_resource.Bucket(bucketName)
+  for obj in bucket.objects.filter(Prefix = remoteDirectoryName):
+    if not os.path.exists(os.path.dirname(obj.key)):
+      os.makedirs(os.path.dirname(obj.key))
+    bucket.download_file(obj.key, obj.key)
 
-s3 = session.resource('s3')
-
-# Obter o bucket que contém as informações necessárias
-bucket = s3.Bucket('[NOME DO BUCKET]') # bucket_exemplo 
-
-# Obter os arquivos dentro do bucket (objetos)
-obj = bucket.Object(key='') # pasta1/exemplo.csv
-
-# Obter o arquivo
-response = obj.get()
-
-# Realizar a leitura do conteúdo dos arquivos
-lines = response['Body'].read()
-
-# Salvar o conteúdo do arquivo em um novo arquivo .csv
-with open('test.csv', 'wb') as file:
-  file.write(lines)
+if __name__ == "__main__":
+  DownloadS3('psl-raw', 'iba/br/laminacao/year=2020/month=08/day=19')
